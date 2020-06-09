@@ -17,6 +17,7 @@
 		35A222701CB493C00015FD5C /* WebRTCModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 35A222451CB493C00015FD5C /* WebRTCModule.m */; };
 		35EC07E61CB73DFE00F3D79C /* RCTConvert+WebRTC.m in Sources */ = {isa = PBXBuildFile; fileRef = 35EC07E51CB73DFE00F3D79C /* RCTConvert+WebRTC.m */; };
 		35EC083A1CB9AEE900F3D79C /* WebRTCModule+RTCDataChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = 35EC08391CB9AEE900F3D79C /* WebRTCModule+RTCDataChannel.m */; };
+		62D287FA248F956900F9B219 /* WebRTCModule+StatsReporting.m in Sources */ = {isa = PBXBuildFile; fileRef = 62D287F9248F956900F9B219 /* WebRTCModule+StatsReporting.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -51,6 +52,7 @@
 		35EC07E51CB73DFE00F3D79C /* RCTConvert+WebRTC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RCTConvert+WebRTC.m"; sourceTree = "<group>"; };
 		35EC08381CB9AEC400F3D79C /* WebRTCModule+RTCDataChannel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "WebRTCModule+RTCDataChannel.h"; sourceTree = "<group>"; };
 		35EC08391CB9AEE900F3D79C /* WebRTCModule+RTCDataChannel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "WebRTCModule+RTCDataChannel.m"; sourceTree = "<group>"; };
+		62D287F9248F956900F9B219 /* WebRTCModule+StatsReporting.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "WebRTCModule+StatsReporting.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 				35A2223D1CB493C00015FD5C /* WebRTCModule+RTCMediaStream.m */,
 				35A2223E1CB493C00015FD5C /* WebRTCModule+RTCPeerConnection.h */,
 				35A2223F1CB493C00015FD5C /* WebRTCModule+RTCPeerConnection.m */,
+				62D287F9248F956900F9B219 /* WebRTCModule+StatsReporting.m */,
 				0B56CFFE212C12EF00213CEE /* WebRTCModule+VideoTrackAdapter.h */,
 				0B56CFFF212C12EF00213CEE /* WebRTCModule+VideoTrackAdapter.m */,
 				35A222441CB493C00015FD5C /* WebRTCModule.h */,
@@ -143,6 +146,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 35A222161CB493700015FD5C;
@@ -164,6 +168,7 @@
 				0B56D000212C12EF00213CEE /* WebRTCModule+VideoTrackAdapter.m in Sources */,
 				35A2226C1CB493C00015FD5C /* WebRTCModule+RTCMediaStream.m in Sources */,
 				0BDDA6E020C18B6B00B38B45 /* VideoCaptureController.m in Sources */,
+				62D287FA248F956900F9B219 /* WebRTCModule+StatsReporting.m in Sources */,
 				0BDDA6DD20C17E7C00B38B45 /* RTCMediaStreamTrack+React.m in Sources */,
 				35A222701CB493C00015FD5C /* WebRTCModule.m in Sources */,
 				35EC07E61CB73DFE00F3D79C /* RCTConvert+WebRTC.m in Sources */,
