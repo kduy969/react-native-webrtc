@@ -16,6 +16,7 @@
 
 #import "WebRTCModule.h"
 #import "WebRTCModule+RTCPeerConnection.h"
+#import "WebRTCModule+StatsReporting.h"
 
 @interface WebRTCModule ()
 @end
@@ -42,6 +43,8 @@
   [_peerConnections removeAllObjects];
 
   _peerConnectionFactory = nil;
+
+  [self stopStatsReporting];
 }
 
 - (instancetype)init

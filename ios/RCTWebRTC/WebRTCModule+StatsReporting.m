@@ -8,13 +8,7 @@
 #import <objc/runtime.h>
 #import <WebRTC/RTCLegacyStatsReport.h>
 
-#import "WebRTCModule.h"
-
-@interface WebRTCModule (StatsReporting)
-
-@property (nonatomic, strong) NSTimer *statsReportingTimer;
-
-@end
+#import "WebRTCModule+StatsReporting.h"
 
 @implementation WebRTCModule (StatsReporting)
 
@@ -41,6 +35,7 @@ RCT_EXPORT_METHOD(startStatsReporting:(double)duration) {
 RCT_EXPORT_METHOD(stopStatsReporting) {
   if (self.statsReportingTimer != nil) {
     [self.statsReportingTimer invalidate];
+    self.statsReportingTimer = nil;
   }
 }
 
@@ -56,8 +51,10 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
         if ([mediaType isEqualToString:@"audio"]) {
           double totalSamplesDuration = [[report.values objectForKey:@"totalSamplesDuration"] doubleValue];
           double totalAudioEnergy = [[report.values objectForKey:@"totalAudioEnergy"] doubleValue];
+          NSString* googTrackId = [report.values objectForKey:@"googTrackId"];
           if (totalSamplesDuration > 0) {
             double audioLevel = sqrt(totalAudioEnergy / totalSamplesDuration);
+            [result setValue:@(audioLevel) forKey:googTrackId];
           }
         }
       }
@@ -65,7 +62,10 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
     }];
   }
   dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-    
+    [self sendEventWithName:kEventStatsReportChanged
+                       body:@{
+                         @"stats": result,
+                       }];
   });
 }
 
