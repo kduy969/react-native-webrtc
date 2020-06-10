@@ -33,7 +33,7 @@ static NSString *const kEventDataChannelReceiveMessage = @"dataChannelReceiveMes
 static NSString *const kEventMediaStreamTrackMuteChanged = @"mediaStreamTrackMuteChanged";
 static NSString *const kEventStatsReportChanged = @"statsReportChanged";
 
-@interface WebRTCModule : RCTEventEmitter <RCTBridgeModule>
+@interface WebRTCModule : RCTEventEmitter <RCTBridgeModule, RCTInvalidating>
 
 @property(nonatomic, strong) dispatch_queue_t workerQueue;
 

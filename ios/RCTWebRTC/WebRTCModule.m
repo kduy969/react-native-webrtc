@@ -101,6 +101,10 @@ RCT_EXPORT_MODULE();
   return _workerQueue;
 }
 
+- (void)invalidate {
+  [self stopStatsReporting];
+}
+
 - (NSArray<NSString *> *)supportedEvents {
   return @[
     kEventPeerConnectionSignalingStateChanged,

@@ -9,6 +9,7 @@
 #import <WebRTC/RTCLegacyStatsReport.h>
 
 #import "WebRTCModule+StatsReporting.h"
+#import "WebRTCModule+RTCPeerConnection.h"
 
 @implementation WebRTCModule (StatsReporting)
 
@@ -63,6 +64,7 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
           double totalAudioEnergy = [[report.values objectForKey:@"totalAudioEnergy"] doubleValue];
           NSString* googTrackId = [report.values objectForKey:@"googTrackId"];
           [result setValue:@{
+            @"peerConnectionId": peerConnection.reactTag,
             @"totalSamplesDuration": @(totalSamplesDuration),
             @"totalAudioEnergy": @(totalAudioEnergy),
           } forKey:googTrackId];
@@ -85,10 +87,7 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
 //    } else {
 //      self.statsReports = [[NSMutableDictionary alloc] initWithDictionary:result];
 //    }
-    [self sendEventWithName:kEventStatsReportChanged
-                       body:@{
-                         @"stats": result,
-                       }];
+    [self sendEventWithName:kEventStatsReportChanged body:result];
   });
 }
 

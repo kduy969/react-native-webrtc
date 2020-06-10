@@ -8,7 +8,7 @@ const { WebRTCModule } = NativeModules;
 
 const STATS_REPORT_EVENTS = ["statsreportchanged"];
 
-class StatsReporting extends EventTarget<STATS_REPORT_EVENTS> {
+class StatsReporting extends EventTarget(STATS_REPORT_EVENTS) {
   startStatsReporting(duration: number) {
     WebRTCModule.startStatsReporting(duration);
     this._registerEvents();
@@ -28,10 +28,7 @@ class StatsReporting extends EventTarget<STATS_REPORT_EVENTS> {
     this._subscriptions = [
       EventEmitter.addListener("statsReportChanged", (ev) => {
         // Stats changed
-        this.dispatchEvent({
-          type: "statsreportchanged",
-          ...ev,
-        });
+        this.dispatchEvent({ type: "statsreportchanged", payload: ev });
       }),
     ];
   }
