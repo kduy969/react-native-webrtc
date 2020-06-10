@@ -6,6 +6,7 @@
 //
 
 #import <objc/runtime.h>
+#import <WebRTC/RTCLegacyStatsReport.h>
 
 #import "WebRTCModule.h"
 
@@ -44,7 +45,28 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
 }
 
 -(void)getStats {
-  // TODO try get stats
+  dispatch_group_t group = dispatch_group_create();
+  NSMutableDictionary* result = [NSMutableDictionary new];
+  for (NSNumber* key in self.peerConnections) {
+    dispatch_group_enter(group);
+    RTCPeerConnection* peerConnection = [self.peerConnections objectForKey:key];
+    [peerConnection statsForTrack:nil statsOutputLevel:RTCStatsOutputLevelStandard completionHandler:^(NSArray<RTCLegacyStatsReport *> * _Nonnull stats) {
+      for (RTCLegacyStatsReport* report in stats) {
+        NSString* mediaType = [report.values objectForKey:@"mediaType"];
+        if ([mediaType isEqualToString:@"audio"]) {
+          double totalSamplesDuration = [[report.values objectForKey:@"totalSamplesDuration"] doubleValue];
+          double totalAudioEnergy = [[report.values objectForKey:@"totalAudioEnergy"] doubleValue];
+          if (totalSamplesDuration > 0) {
+            double audioLevel = sqrt(totalAudioEnergy / totalSamplesDuration);
+          }
+        }
+      }
+      dispatch_group_leave(group);
+    }];
+  }
+  dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+    
+  });
 }
 
 @end
