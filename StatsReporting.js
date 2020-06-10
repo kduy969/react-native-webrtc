@@ -6,7 +6,7 @@ import EventEmitter from "./EventEmitter";
 
 const { WebRTCModule } = NativeModules;
 
-const STATS_REPORT_EVENTS = ["speaking", "stop_speaking"];
+const STATS_REPORT_EVENTS = ["statsreportchanged"];
 
 class StatsReporting extends EventTarget<STATS_REPORT_EVENTS> {
   startStatsReporting(duration: number) {
@@ -28,9 +28,8 @@ class StatsReporting extends EventTarget<STATS_REPORT_EVENTS> {
     this._subscriptions = [
       EventEmitter.addListener("statsReportChanged", (ev) => {
         // Stats changed
-        console.warn("statsReportChanged", ev);
         this.dispatchEvent({
-          type: "speaking",
+          type: "statsreportchanged",
           ...ev,
         });
       }),

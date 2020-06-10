@@ -12,14 +12,24 @@
 
 @implementation WebRTCModule (StatsReporting)
 
-- (NSNumber *)statsReportingTimer
+- (NSTimer *)statsReportingTimer
 {
   return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setStatsReportingTimer:(NSNumber *)statsReportingTimer
+- (void)setStatsReportingTimer:(NSTimer *)statsReportingTimer
 {
   objc_setAssociatedObject(self, @selector(statsReportingTimer), statsReportingTimer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (NSDictionary *)statsReports
+{
+  return objc_getAssociatedObject(self, _cmd);
+}
+
+- (void)setStatsReports:(NSDictionary *)statsReports
+{
+  objc_setAssociatedObject(self, @selector(statsReports), statsReports, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 RCT_EXPORT_METHOD(startStatsReporting:(double)duration) {
@@ -52,16 +62,29 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
           double totalSamplesDuration = [[report.values objectForKey:@"totalSamplesDuration"] doubleValue];
           double totalAudioEnergy = [[report.values objectForKey:@"totalAudioEnergy"] doubleValue];
           NSString* googTrackId = [report.values objectForKey:@"googTrackId"];
-          if (totalSamplesDuration > 0) {
-            double audioLevel = sqrt(totalAudioEnergy / totalSamplesDuration);
-            [result setValue:@(audioLevel) forKey:googTrackId];
-          }
+          [result setValue:@{
+            @"totalSamplesDuration": @(totalSamplesDuration),
+            @"totalAudioEnergy": @(totalAudioEnergy),
+          } forKey:googTrackId];
         }
       }
       dispatch_group_leave(group);
     }];
   }
   dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+//    if (self.statsReports != nil) {
+//      for (NSString* key in result) {
+//        NSDictionary* value = [result objectForKey:key];
+//        NSDictionary* preValue = [self.statsReports objectForKey:key];
+//        double diffDuration = [[value objectForKey:@"totalSamplesDuration"] doubleValue] - [[preValue objectForKey:@"totalSamplesDuration"] doubleValue];
+//        double diffEnergy = [[value objectForKey:@"totalAudioEnergy"] doubleValue] - [[preValue objectForKey:@"totalAudioEnergy"] doubleValue];
+//        double audioLevel = sqrt(diffEnergy/diffDuration);
+//        NSLog(@"audioLevel %f", audioLevel);
+//        [self.statsReports setValue:value forKey:key];
+//      }
+//    } else {
+//      self.statsReports = [[NSMutableDictionary alloc] initWithDictionary:result];
+//    }
     [self sendEventWithName:kEventStatsReportChanged
                        body:@{
                          @"stats": result,
