@@ -19,4 +19,11 @@ final class ThreadUtils {
     public static void runOnExecutor(Runnable runnable) {
         executor.execute(runnable);
     }
+
+    private static final ExecutorService statsReportingExecutor
+            = Executors.newSingleThreadExecutor();
+
+    public static void runStatsReportingOnExecutor(Runnable runnable) {
+        statsReportingExecutor.execute(runnable);
+    }
 }
