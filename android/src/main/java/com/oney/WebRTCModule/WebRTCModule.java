@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.webrtc.*;
 import org.webrtc.audio.AudioDeviceModule;
@@ -977,6 +980,44 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             Log.d(TAG, "dataChannelSend() peerConnection is null");
         } else {
             pco.dataChannelSend(dataChannelId, data, type);
+        }
+    }
+
+    private Timer statsReportingTimer;
+    private AtomicInteger statsCounter;
+
+    @ReactMethod
+    public void startStatsReporting(double duration) {
+        stopStatsReporting();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                ThreadUtils.runStatsReportingOnExecutor(() -> getStatsAsync());
+            }
+        };
+        statsReportingTimer = new Timer();
+        statsReportingTimer.scheduleAtFixedRate(task, 0, (long)(duration*1000));
+    }
+
+    private void getStatsAsync() {
+        statsCounter = new AtomicInteger(0);
+        WritableMap statsReport = Arguments.createMap();
+        for (int i = 0; i < mPeerConnectionObservers.size(); i++) {
+            statsCounter.incrementAndGet();
+            PeerConnectionObserver pco = mPeerConnectionObservers.valueAt(i);
+            pco.getStatsReport(statsReport, args -> {
+                if (statsCounter.decrementAndGet() == 0) {
+                    sendEvent("statsReportChanged", statsReport);
+                }
+            });
+        }
+    }
+
+    @ReactMethod
+    public void stopStatsReporting() {
+        if (statsReportingTimer != null) {
+            statsReportingTimer.cancel();
+            statsReportingTimer = null;
         }
     }
 }

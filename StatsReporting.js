@@ -20,6 +20,9 @@ class StatsReporting extends EventTarget(STATS_REPORT_EVENTS) {
   }
 
   _unregisterEvents() {
+    if (!this._subscriptions) {
+      return;
+    }
     this._subscriptions.forEach((e) => e.remove());
     this._subscriptions = [];
   }

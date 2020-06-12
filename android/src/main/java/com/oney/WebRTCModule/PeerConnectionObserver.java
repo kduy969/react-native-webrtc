@@ -27,6 +27,7 @@ import org.webrtc.IceCandidate;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
+import org.webrtc.RTCStats;
 import org.webrtc.RtpReceiver;
 import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
@@ -280,6 +281,30 @@ class PeerConnectionObserver implements PeerConnection.Observer {
         s.setLength(0);
 
         return r;
+    }
+
+    public void getStatsReport(WritableMap data, Callback callback) {
+        peerConnection.getStats(rtcStatsReport -> {
+            Map<String, RTCStats> statsMap = rtcStatsReport.getStatsMap();
+            for (String key: statsMap.keySet()) {
+                RTCStats stats = statsMap.get(key);
+                if (stats.getType().equals("track")) {
+                    Map<String, Object> members = stats.getMembers();
+                    String mediaType = (String) members.get("kind");
+                    if ("audio".equals(mediaType)) {
+                        double totalAudioEnergy = (double) members.get("totalAudioEnergy");
+                        double totalSamplesDuration = (double) members.get("totalSamplesDuration");
+                        String trackIdentifier = (String) members.get("trackIdentifier");
+                        WritableMap payload = Arguments.createMap();
+                        payload.putDouble("totalAudioEnergy", totalAudioEnergy);
+                        payload.putDouble("totalSamplesDuration", totalSamplesDuration);
+                        payload.putInt("peerConnectionId", id);
+                        data.putMap(trackIdentifier, payload);
+                    }
+                }
+            }
+            callback.invoke(true);
+        });
     }
 
     @Override
