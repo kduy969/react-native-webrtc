@@ -53,7 +53,7 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
 -(void)getStats {
   dispatch_group_t group = dispatch_group_create();
   NSMutableDictionary* result = [NSMutableDictionary new];
-  for (NSNumber* key in self.peerConnections) {
+  for (NSNumber* key in [self.peerConnections allKeys]) {
     dispatch_group_enter(group);
     RTCPeerConnection* peerConnection = [self.peerConnections objectForKey:key];
     [peerConnection statsForTrack:nil statsOutputLevel:RTCStatsOutputLevelStandard completionHandler:^(NSArray<RTCLegacyStatsReport *> * _Nonnull stats) {
