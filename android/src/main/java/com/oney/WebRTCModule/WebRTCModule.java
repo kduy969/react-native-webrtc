@@ -984,7 +984,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     }
 
     private Timer statsReportingTimer;
-    private AtomicInteger statsCounter = new AtomicInteger(0);
+    private AtomicInteger statsCounter;
 
     @ReactMethod
     public void startStatsReporting(double duration) {
@@ -1000,15 +1000,15 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     }
 
     private void getStatsAsync() {
-        if (statsCounter.get() > 0) {
-            return;
-        }
-        statsCounter.set(0);
+        statsCounter = new AtomicInteger(0);
         WritableMap statsReport = Arguments.createMap();
-        for (int i = 0; i < mPeerConnectionObservers.size(); i++) {
-            statsCounter.incrementAndGet();
+        int size = mPeerConnectionObservers.size();
+        for (int i = 0; i < size; i++) {
             PeerConnectionObserver pco = mPeerConnectionObservers.valueAt(i);
-            pco.getStatsReport(statsReport, args -> {
+            if (pco == null) continue;
+            statsCounter.incrementAndGet();
+            pco.getStatsReport(args -> {
+                statsReport.merge((ReadableMap) args[0]);
                 if (statsCounter.decrementAndGet() == 0) {
                     sendEvent("statsReportChanged", statsReport);
                 }

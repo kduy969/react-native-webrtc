@@ -35,6 +35,7 @@
 
 RCT_EXPORT_METHOD(startStatsReporting:(double)duration) {
   dispatch_async(dispatch_get_main_queue(), ^{
+    [self stopStatsReporting];
     self.statsReportingTimer = [NSTimer scheduledTimerWithTimeInterval:duration
                                                                 target:self
                                                               selector:@selector(getStats)
@@ -53,9 +54,13 @@ RCT_EXPORT_METHOD(stopStatsReporting) {
 -(void)getStats {
   dispatch_group_t group = dispatch_group_create();
   NSMutableDictionary* result = [NSMutableDictionary new];
-  for (NSNumber* key in [self.peerConnections allKeys]) {
+  NSArray* allKeys = [self.peerConnections allKeys];
+  for (NSNumber* key in allKeys) {
     dispatch_group_enter(group);
     RTCPeerConnection* peerConnection = [self.peerConnections objectForKey:key];
+    if (peerConnection == nil) {
+      continue;
+    }
     [peerConnection statsForTrack:nil statsOutputLevel:RTCStatsOutputLevelStandard completionHandler:^(NSArray<RTCLegacyStatsReport *> * _Nonnull stats) {
       for (RTCLegacyStatsReport* report in stats) {
         NSString* mediaType = [report.values objectForKey:@"mediaType"];
