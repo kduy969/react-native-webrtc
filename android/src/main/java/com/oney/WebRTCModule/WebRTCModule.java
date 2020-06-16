@@ -1017,7 +1017,8 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
                         sendEvent("statsReportChanged", statsReport);
                     }
                 } catch (Exception e) {
-                  e.printStackTrace();
+                    statsCounter.decrementAndGet();
+                    e.printStackTrace();
                 }
             });
         }
