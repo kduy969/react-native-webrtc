@@ -13,87 +13,26 @@
 
 @implementation WebRTCModule (StatsReporting)
 
-- (NSTimer *)statsReportingTimer
+- (LocalAudioAnalyzer *)localAudioAnalyzer
 {
   return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void)setStatsReportingTimer:(NSTimer *)statsReportingTimer
+- (void)setLocalAudioAnalyzer:(LocalAudioAnalyzer *)localAudioAnalyzer
 {
-  objc_setAssociatedObject(self, @selector(statsReportingTimer), statsReportingTimer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(self, @selector(localAudioAnalyzer), localAudioAnalyzer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-- (NSDictionary *)statsReports
-{
-  return objc_getAssociatedObject(self, _cmd);
-}
-
-- (void)setStatsReports:(NSDictionary *)statsReports
-{
-  objc_setAssociatedObject(self, @selector(statsReports), statsReports, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-RCT_EXPORT_METHOD(startStatsReporting:(double)duration) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self stopStatsReporting];
-    self.statsReportingTimer = [NSTimer scheduledTimerWithTimeInterval:duration
-                                                                target:self
-                                                              selector:@selector(getStats)
-                                                              userInfo:nil
-                                                               repeats:YES];
-  });
+RCT_EXPORT_METHOD(startStatsReporting:(int)duration) {
+  if (self.localAudioAnalyzer == nil) {
+    self.localAudioAnalyzer = [[LocalAudioAnalyzer alloc] init];
+  }
+  [self.localAudioAnalyzer start:duration];
 }
 
 RCT_EXPORT_METHOD(stopStatsReporting) {
-  if (self.statsReportingTimer != nil) {
-    [self.statsReportingTimer invalidate];
-    self.statsReportingTimer = nil;
-  }
-}
-
--(void)getStats {
-  dispatch_group_t group = dispatch_group_create();
-  NSMutableDictionary* result = [NSMutableDictionary new];
-  NSArray* allKeys = [self.peerConnections allKeys];
-  for (NSNumber* key in allKeys) {
-    dispatch_group_enter(group);
-    RTCPeerConnection* peerConnection = [self.peerConnections objectForKey:key];
-    if (peerConnection == nil) {
-      continue;
-    }
-    [peerConnection statsForTrack:nil statsOutputLevel:RTCStatsOutputLevelStandard completionHandler:^(NSArray<RTCLegacyStatsReport *> * _Nonnull stats) {
-      for (RTCLegacyStatsReport* report in stats) {
-        NSString* mediaType = [report.values objectForKey:@"mediaType"];
-        if ([mediaType isEqualToString:@"audio"]) {
-          double totalSamplesDuration = [[report.values objectForKey:@"totalSamplesDuration"] doubleValue];
-          double totalAudioEnergy = [[report.values objectForKey:@"totalAudioEnergy"] doubleValue];
-          NSString* googTrackId = [report.values objectForKey:@"googTrackId"];
-          [result setValue:@{
-            @"peerConnectionId": peerConnection.reactTag,
-            @"totalSamplesDuration": @(totalSamplesDuration),
-            @"totalAudioEnergy": @(totalAudioEnergy),
-          } forKey:googTrackId];
-        }
-      }
-      dispatch_group_leave(group);
-    }];
-  }
-  dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-//    if (self.statsReports != nil) {
-//      for (NSString* key in result) {
-//        NSDictionary* value = [result objectForKey:key];
-//        NSDictionary* preValue = [self.statsReports objectForKey:key];
-//        double diffDuration = [[value objectForKey:@"totalSamplesDuration"] doubleValue] - [[preValue objectForKey:@"totalSamplesDuration"] doubleValue];
-//        double diffEnergy = [[value objectForKey:@"totalAudioEnergy"] doubleValue] - [[preValue objectForKey:@"totalAudioEnergy"] doubleValue];
-//        double audioLevel = sqrt(diffEnergy/diffDuration);
-//        NSLog(@"audioLevel %f", audioLevel);
-//        [self.statsReports setValue:value forKey:key];
-//      }
-//    } else {
-//      self.statsReports = [[NSMutableDictionary alloc] initWithDictionary:result];
-//    }
-    [self sendEventWithName:kEventStatsReportChanged body:result];
-  });
+  [self.localAudioAnalyzer stop];
+//  [self sendEventWithName:kEventStatsReportChanged body:result];
 }
 
 @end

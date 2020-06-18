@@ -6,10 +6,11 @@
 //
 
 #import "WebRTCModule.h"
+#import "LocalAudioAnalyzer.h"
 
 @interface WebRTCModule (StatsReporting)
 
-@property (nonatomic, strong) NSTimer *statsReportingTimer;
+@property (nonatomic, strong) LocalAudioAnalyzer *localAudioAnalyzer;
 
 -(void)stopStatsReporting;
 
