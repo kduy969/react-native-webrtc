@@ -8,9 +8,16 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
+@protocol LocalAudioAnalyzerDelegate <NSObject>
+- (void)onSpeak:(BOOL)speaking;
+
+@end
+
 @interface LocalAudioAnalyzer : NSObject<AVAudioRecorderDelegate>
 
--(void)start:(int)monitorInterval;
+@property (nonatomic, weak) id<LocalAudioAnalyzerDelegate> delegate;
+
+-(void)start;
 -(void)stop;
 
 @end

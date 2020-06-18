@@ -986,7 +986,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startStatsReporting(double duration) {
+    public void startStatsReporting() {
         localAudioAnalyzer.start(new LocalAudioAnalyzer.LocalAudioAnalyzerCallback() {
             @Override
             public void onSpeaking(boolean speaking) {

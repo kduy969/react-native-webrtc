@@ -10,48 +10,49 @@
 @implementation LocalAudioAnalyzer {
   AVAudioRecorder *_audioRecorder;
   id _progressUpdateTimer;
-  int _frameId;
   int _progressUpdateInterval;
   NSDate *_prevProgressUpdateTime;
   AVAudioSession *_recordSession;
+  BOOL isSpeaking;
 }
 
--(void)start:(int)monitorInterval
+-(void)start
 {
   NSLog(@"Start Monitoring");
   _prevProgressUpdateTime = nil;
+  _progressUpdateInterval = 1000;
   [self stopProgressTimer];
-
+  
   NSDictionary *recordSettings = [NSDictionary dictionaryWithObjectsAndKeys:
-          [NSNumber numberWithInt:AVAudioQualityLow], AVEncoderAudioQualityKey,
-          [NSNumber numberWithInt:kAudioFormatMPEG4AAC], AVFormatIDKey,
-          [NSNumber numberWithInt:1], AVNumberOfChannelsKey,
-          [NSNumber numberWithFloat:22050.0], AVSampleRateKey,
-          nil];
-
+                                  [NSNumber numberWithInt:AVAudioQualityLow], AVEncoderAudioQualityKey,
+                                  [NSNumber numberWithInt:kAudioFormatMPEG4AAC], AVFormatIDKey,
+                                  [NSNumber numberWithInt:1], AVNumberOfChannelsKey,
+                                  [NSNumber numberWithFloat:22050.0], AVSampleRateKey,
+                                  nil];
+  
   NSError *error = nil;
-
+  
   _recordSession = [AVAudioSession sharedInstance];
   [_recordSession setCategory:AVAudioSessionCategoryMultiRoute error:nil];
-
-  NSURL *_tempFileUrl = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp"]];
-
+  
+  NSURL *_tempFileUrl = [NSURL fileURLWithPath:@"/dev/null"];
+  
   _audioRecorder = [[AVAudioRecorder alloc]
-                initWithURL:_tempFileUrl
-                settings:recordSettings
-                error:&error];
-
+                    initWithURL:_tempFileUrl
+                    settings:recordSettings
+                    error:&error];
+  
   _audioRecorder.delegate = self;
-
+  
   if (error) {
-      NSLog(@"error: %@", [error localizedDescription]);
-    } else {
-      [_audioRecorder prepareToRecord];
+    NSLog(@"error: %@", [error localizedDescription]);
+  } else {
+    [_audioRecorder prepareToRecord];
   }
-
+  
   _audioRecorder.meteringEnabled = YES;
-
-  [self startProgressTimer:monitorInterval];
+  
+  [self startProgressTimer];
   [_recordSession setActive:YES error:nil];
   [_audioRecorder record];
 }
@@ -60,20 +61,20 @@
   if (!_audioRecorder || !_audioRecorder.isRecording) {
     return;
   }
-
-  if (_prevProgressUpdateTime == nil ||
-   (([_prevProgressUpdateTime timeIntervalSinceNow] * -1000.0) >= _progressUpdateInterval)) {
-      _frameId++;
-      NSMutableDictionary *body = [[NSMutableDictionary alloc] init];
-      [body setObject:[NSNumber numberWithFloat:_frameId] forKey:@"id"];
-
-      [_audioRecorder updateMeters];
-      float _currentLevel = [_audioRecorder averagePowerForChannel: 0];
-      [body setObject:[NSNumber numberWithFloat:_currentLevel] forKey:@"value"];
-      [body setObject:[NSNumber numberWithFloat:_currentLevel] forKey:@"rawValue"];
-
-      [self.bridge.eventDispatcher sendAppEventWithName:@"frame" body:body];
-
+  
+  if (_prevProgressUpdateTime == nil
+      || !isSpeaking
+      || (([_prevProgressUpdateTime timeIntervalSinceNow] * -1000.0) >= _progressUpdateInterval)) {
+    [_audioRecorder updateMeters];
+    float _currentLevel = [_audioRecorder averagePowerForChannel: 0];
+    //    NSLog(@"currentlevel %f", _currentLevel);
+    BOOL speaking = _currentLevel > -20;
+    if (speaking != isSpeaking) {
+      if ([self.delegate respondsToSelector:@selector(onSpeak:)]) {
+        [self.delegate onSpeak:speaking];
+      }
+    }
+    isSpeaking = speaking;
     _prevProgressUpdateTime = [NSDate date];
   }
 }
@@ -89,11 +90,9 @@
   [_progressUpdateTimer invalidate];
 }
 
-- (void)startProgressTimer:(int)monitorInterval {
-  _progressUpdateInterval = monitorInterval;
-
+- (void)startProgressTimer {
   [self stopProgressTimer];
-
+  
   _progressUpdateTimer = [CADisplayLink displayLinkWithTarget:self selector:@selector(sendProgressUpdate)];
   [_progressUpdateTimer addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
 }

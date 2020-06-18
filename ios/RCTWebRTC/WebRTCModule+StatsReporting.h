@@ -8,7 +8,7 @@
 #import "WebRTCModule.h"
 #import "LocalAudioAnalyzer.h"
 
-@interface WebRTCModule (StatsReporting)
+@interface WebRTCModule (StatsReporting) <LocalAudioAnalyzerDelegate>
 
 @property (nonatomic, strong) LocalAudioAnalyzer *localAudioAnalyzer;
 
