@@ -21,9 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.webrtc.*;
 import org.webrtc.audio.AudioDeviceModule;
@@ -42,6 +39,7 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
      * in order to reduce complexity and to (somewhat) separate concerns.
      */
     private GetUserMediaImpl getUserMediaImpl;
+    private LocalAudioAnalyzer localAudioAnalyzer;
 
     public static class Options {
         private VideoEncoderFactory videoEncoderFactory = null;
@@ -113,8 +111,12 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
             }
         }
 
+        localAudioAnalyzer = new LocalAudioAnalyzer();
         if (adm == null) {
-            adm = JavaAudioDeviceModule.builder(reactContext).createAudioDeviceModule();
+            adm = JavaAudioDeviceModule
+                    .builder(reactContext)
+                    .setSamplesReadyCallback(localAudioAnalyzer)
+                    .createAudioDeviceModule();
         }
 
         mFactory
@@ -983,52 +985,22 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private Timer statsReportingTimer;
-    private AtomicInteger statsCounter = new AtomicInteger(0);
-
     @ReactMethod
     public void startStatsReporting(double duration) {
-        stopStatsReporting();
-        TimerTask task = new TimerTask() {
+        localAudioAnalyzer.start(new LocalAudioAnalyzer.LocalAudioAnalyzerCallback() {
             @Override
-            public void run() {
-                ThreadUtils.runStatsReportingOnExecutor(() -> getStatsAsync());
-            }
-        };
-        statsReportingTimer = new Timer();
-        statsReportingTimer.scheduleAtFixedRate(task, 0, (long)(duration*1000));
-    }
-
-    private void getStatsAsync() {
-        if (statsCounter.get() > 0) {
-            return;
-        }
-        statsCounter.set(0);
-        WritableMap statsReport = Arguments.createMap();
-        int size = mPeerConnectionObservers.size();
-        for (int i = 0; i < size; i++) {
-            PeerConnectionObserver pco = mPeerConnectionObservers.valueAt(i);
-            if (pco == null) continue;
-            statsCounter.incrementAndGet();
-            pco.getStatsReport(args -> {
-                try {
-                    statsReport.merge((ReadableMap) args[0]);
-                    if (statsCounter.decrementAndGet() == 0) {
-                        sendEvent("statsReportChanged", statsReport);
-                    }
-                } catch (Exception e) {
-                    statsCounter.decrementAndGet();
-                    e.printStackTrace();
+            public void onSpeaking(boolean speaking) {
+                if (speaking) {
+                    sendEvent("speaking", null);
+                } else {
+                    sendEvent("stopSpeaking", null);
                 }
-            });
-        }
+            }
+        });
     }
 
     @ReactMethod
     public void stopStatsReporting() {
-        if (statsReportingTimer != null) {
-            statsReportingTimer.cancel();
-            statsReportingTimer = null;
-        }
+        localAudioAnalyzer.stop();
     }
 }
