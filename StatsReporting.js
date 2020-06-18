@@ -6,7 +6,7 @@ import EventEmitter from "./EventEmitter";
 
 const { WebRTCModule } = NativeModules;
 
-const STATS_REPORT_EVENTS = ["speaking", "stopSpeaking"];
+const STATS_REPORT_EVENTS = ["speaking", "stopspeaking"];
 
 class StatsReporting extends EventTarget(STATS_REPORT_EVENTS) {
   startStatsReporting() {
@@ -35,7 +35,7 @@ class StatsReporting extends EventTarget(STATS_REPORT_EVENTS) {
       }),
       EventEmitter.addListener("stopSpeaking", (ev) => {
         // Stats changed
-        this.dispatchEvent({ type: "stopSpeaking" });
+        this.dispatchEvent({ type: "stopspeaking" });
       }),
     ];
   }
