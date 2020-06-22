@@ -986,15 +986,12 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startStatsReporting() {
-        localAudioAnalyzer.start(new LocalAudioAnalyzer.LocalAudioAnalyzerCallback() {
-            @Override
-            public void onSpeaking(boolean speaking) {
-                if (speaking) {
-                    sendEvent("speaking", null);
-                } else {
-                    sendEvent("stopSpeaking", null);
-                }
+    public void startStatsReporting(float speakingThreshold) {
+        localAudioAnalyzer.start(speakingThreshold, speaking -> {
+            if (speaking) {
+                sendEvent("speaking", null);
+            } else {
+                sendEvent("stopSpeaking", null);
             }
         });
     }

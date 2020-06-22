@@ -14,13 +14,15 @@
   NSDate *_prevProgressUpdateTime;
   AVAudioSession *_recordSession;
   BOOL isSpeaking;
+  float speakingThreshold;
 }
 
--(void)start
+-(void)start:(float)threshold
 {
   NSLog(@"Start Monitoring");
   _prevProgressUpdateTime = nil;
   _progressUpdateInterval = 1000;
+  speakingThreshold = threshold;
   [self stopProgressTimer];
   
   NSDictionary *recordSettings = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -68,7 +70,7 @@
     [_audioRecorder updateMeters];
     float _currentLevel = [_audioRecorder averagePowerForChannel: 0];
     //    NSLog(@"currentlevel %f", _currentLevel);
-    BOOL speaking = _currentLevel > -20;
+    BOOL speaking = _currentLevel > speakingThreshold;
     if (speaking != isSpeaking) {
       if ([self.delegate respondsToSelector:@selector(onSpeak:)]) {
         [self.delegate onSpeak:speaking];

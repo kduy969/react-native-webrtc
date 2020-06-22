@@ -23,13 +23,13 @@
   objc_setAssociatedObject(self, @selector(localAudioAnalyzer), localAudioAnalyzer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
-RCT_EXPORT_METHOD(startStatsReporting) {
+RCT_EXPORT_METHOD(startStatsReporting:(float)speakingThreshold) {
   dispatch_sync(dispatch_get_main_queue(), ^{
     if (self.localAudioAnalyzer == nil) {
       self.localAudioAnalyzer = [[LocalAudioAnalyzer alloc] init];
       self.localAudioAnalyzer.delegate = self;
     }
-    [self.localAudioAnalyzer start];
+    [self.localAudioAnalyzer start:speakingThreshold];
   });
 }
 

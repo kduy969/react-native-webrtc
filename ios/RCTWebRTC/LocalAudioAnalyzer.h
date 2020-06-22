@@ -17,7 +17,7 @@
 
 @property (nonatomic, weak) id<LocalAudioAnalyzerDelegate> delegate;
 
--(void)start;
+-(void)start:(float)speakingThreshold;
 -(void)stop;
 
 @end

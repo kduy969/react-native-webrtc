@@ -1,16 +1,28 @@
 "use strict";
 
-import { NativeModules } from "react-native";
+import { NativeModules, Platform } from "react-native";
 import EventTarget from "event-target-shim";
 import EventEmitter from "./EventEmitter";
 
 const { WebRTCModule } = NativeModules;
 
 const STATS_REPORT_EVENTS = ["speaking", "stopspeaking"];
+const defaultOptions = {
+  androidSpeakingThreshold: -10,
+  iosSpeakingThreshold: -20
+};
 
 class StatsReporting extends EventTarget(STATS_REPORT_EVENTS) {
-  startStatsReporting() {
-    WebRTCModule.startStatsReporting();
+  startStatsReporting(options) {
+    let finalOptions = {
+      ...defaultOptions,
+      ...options
+    };
+    const speakingThreshold = Platform.select({
+      ios: finalOptions.iosSpeakingThreshold,
+      android: finalOptions.androidSpeakingThreshold
+    });
+    WebRTCModule.startStatsReporting(speakingThreshold);
     this._registerEvents();
   }
 

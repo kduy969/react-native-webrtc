@@ -1,7 +1,5 @@
 package com.oney.WebRTCModule;
 
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import org.webrtc.audio.JavaAudioDeviceModule;
@@ -16,13 +14,15 @@ class LocalAudioAnalyzer implements JavaAudioDeviceModule.SamplesReadyCallback {
     private boolean isSpeaking = false;
     private LocalAudioAnalyzerCallback callback;
     private long lastSpoke = 0;
+    private float speakingThreshold;
 
     /**
      * Should be called on the same executor thread as the one provided at
      * construction.
      */
-    public void start(LocalAudioAnalyzerCallback callback) {
+    public void start(float threshold, LocalAudioAnalyzerCallback callback) {
         Log.d(TAG, "start");
+        speakingThreshold = threshold;
         isRunning.set(true);
         this.callback = callback;
     }
@@ -87,7 +87,7 @@ class LocalAudioAnalyzer implements JavaAudioDeviceModule.SamplesReadyCallback {
         double peak = 20*Math.log10(peakSample / 32767);
 
         if (this.callback != null) {
-            boolean speaking = rms > -10;
+            boolean speaking = rms > speakingThreshold;
             updateValue(speaking);
         }
     }
