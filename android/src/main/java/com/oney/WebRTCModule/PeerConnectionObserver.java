@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,6 +31,7 @@ import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.RTCStats;
 import org.webrtc.RtpReceiver;
+import org.webrtc.RtpSender;
 import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
 import org.webrtc.VideoTrack;
@@ -556,5 +559,50 @@ class PeerConnectionObserver implements PeerConnection.Observer {
                 return "closed";
         }
         return null;
+    }
+
+    Set<String> removedSender = new LinkedHashSet<>();
+    public void disableVideoSender() {
+        if (this.peerConnection != null) {
+            List<RtpSender> senders = this.peerConnection.getSenders();
+            for (RtpSender sender : senders) {
+                if (sender.track().kind().equals(MediaStreamTrack.VIDEO_TRACK_KIND)) {
+                    removedSender.add(sender.id());
+                    sender.setTrack(null, false); // replaceTrack
+                }
+
+            }
+        }
+    }
+
+    private List<VideoTrack> getLocalVideoTracks() {
+        ArrayList<VideoTrack> videoTracks = new ArrayList<>();
+        if (this.localStreams == null)
+            return videoTracks;
+
+        for (MediaStream stream : this.localStreams) {
+            for (VideoTrack videoTrack : stream.videoTracks) {
+                if (videoTrack.enabled()) {
+                    videoTracks.add(videoTrack);
+                }
+            }
+        }
+        return videoTracks;
+    }
+
+    public void enableVideoSender() {
+        if (this.peerConnection != null) {
+            List<RtpSender> senders = this.peerConnection.getSenders();
+            for (RtpSender sender : senders) {
+                if(removedSender.contains(sender.id())){
+                    List<VideoTrack> videoTracks = this.getLocalVideoTracks();
+                    if (videoTracks.size() > 0) {
+                        sender.setTrack(videoTracks.get(0), false);
+                    }
+                    Log.i("LOCAL VIDEO TRACKS", videoTracks.size() + "");
+                }
+            }
+            removedSender.clear();
+        }
     }
 }

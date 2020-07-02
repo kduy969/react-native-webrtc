@@ -1000,4 +1000,24 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
     public void stopStatsReporting() {
         localAudioAnalyzer.stop();
     }
+
+    @ReactMethod
+    public void peerConnectionStopVideoSender(int id) {
+        try {
+            PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
+            pco.disableVideoSender();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @ReactMethod
+    public void peerConnectionStartVideoSender(int id) {
+        try {
+            PeerConnectionObserver pco = mPeerConnectionObservers.get(id);
+            pco.enableVideoSender();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 }
